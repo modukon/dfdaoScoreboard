@@ -11,7 +11,7 @@
 // click on a players planet to choose someone else as center
 
 // this needs to be changed
-const API_URL_GRAPH = 'https://api.thegraph.com/subgraphs/name/darkforest-eth/dark-forest-v06-round-4';
+const API_URL_GRAPH = 'https://api.thegraph.com/subgraphs/name/cha0sg0d/dry-run-of-death-of-the-universe';
 const API_URL_NAMES = 'https://api.zkga.me/twitter/all-twitters';
 
 const destroyedPlanetPoints = [
@@ -145,8 +145,7 @@ function getQueryDistanceToCenter(idGreaterThan=0) {
     owner {
       id
     }
-    x
-    y
+	revealedRadius
     planetLevel
   }
 }`;
@@ -408,6 +407,7 @@ function Plugin() {
 	o.updateSilverArtifact = async function() {
 		let players = await dlQuerySilverArtifact();
 		for (let p of players) {
+			if (p.id === emptyAddress) continue;
 			if (!o.players[p.id]) createNewPlayer(p.id);
 			o.players[p.id].scoreSilverArtifact = p.score;
 		}
@@ -421,8 +421,9 @@ function Plugin() {
 			if (p.planetLevel < minPlanetLvlForCenterDistanceScore)
 				continue;
 			let hash = p.owner.id;
+			if (hash === emptyAddress) continue;
 			if (!o.players[hash]) createNewPlayer(hash);
-			let dist = Math.sqrt(p.x*p.x + p.y*p.y);
+			let dist = p.revealedRadius;
 			if (dist > o.players[hash].scoreDistanceToCenter)
 				continue;
 			o.players[hash].scoreDistanceToCenter = dist;
@@ -435,6 +436,7 @@ function Plugin() {
 		}
 		for (let p of planets) {
 			let hash = p.owner.id;
+			if (hash === emptyAddress) continue;
 			if (!o.players[hash]) createNewPlayer(hash);
 			let score = destroyedPlanetPoints[p.planetLevel];
 			o.players[hash].scorePlanetsDestroyed += score;
@@ -507,10 +509,11 @@ function Plugin() {
 		if (!o.centerPlayerInList) centerRank = 1;
 		else centerRank = o.playerList.findIndex(p => p.hash === o.selectedPlayer);
 		if (centerRank < 0) centerRank = 0;
+		let lr = leaderboardRange*2;
 		let i = centerRank - leaderboardRange;
+		if (i+lr > o.playerList.length-1) i -= i+lr - (o.playerList.length-1);
 		if (i < 0) i = 0;
 		let max = centerRank + leaderboardRange;
-		let lr = leaderboardRange*2;
 		if (max-i < lr) max += lr - (max-i); // show at least leaderboardRange*2 + 1 players
 		for ( ; i < o.playerList.length && i <= max; ++i) {
 			let player = o.playerList[i];
