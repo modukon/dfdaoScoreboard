@@ -14,19 +14,6 @@
 const API_URL_GRAPH = 'https://api.thegraph.com/subgraphs/name/cha0sg0d/dry-run-of-death-of-the-universe';
 const API_URL_NAMES = 'https://api.zkga.me/twitter/all-twitters';
 
-const destroyedPlanetPoints = [
-	1,
-	4,
-	16,
-	64,
-	256,
-	1025,
-	4112,
-	16644,
-	69905,
-	349525,
-];
-
 // only count planets that are lvl 3 or higher for calculating the distance from center score
 const minPlanetLvlForCenterDistanceScore = 3;
 
@@ -127,12 +114,13 @@ function formatSeconds(seconds, decimalCount=1) {
 
 // ------------------------------------------------------------------
 
-function getQuerySilverArtifact(idGreaterThan=0) {
+function getQueryPlayerScores(idGreaterThan=0) {
 	return `
 {
   players(first:1000, where:{id_gt:"${idGreaterThan}"}) {
     id
     score
+    destroyedScore
   }
 }`;
 }
@@ -150,21 +138,6 @@ function getQueryDistanceToCenter(idGreaterThan=0) {
   }
 }`;
 }
-
-function getQueryPlanetsDestroyed(idGreaterThan=0) {
-	return `
-{
-  planets(first:1000, where:{destroyed:true, id_gt:"${idGreaterThan}"}) {
-	id
-    owner {
-      id
-    }
-    destroyed
-    planetLevel
-  }
-}`;
-}
-
 
 async function dlGraphQLData(query, graphApiUrl=API_URL_GRAPH) {
 	const response = await fetch(graphApiUrl, {
@@ -191,11 +164,8 @@ async function dlLoopGraphData(createQueryFunc, arrName) {
 	return returnArr;
 }
 
-async function dlQuerySilverArtifact() {
-	return await dlLoopGraphData(getQuerySilverArtifact, "players");
-}
-async function dlQueryPlanetsDestroyed() {
-	return await dlLoopGraphData(getQueryPlanetsDestroyed, "planets");
+async function dlQueryPlayerScores() {
+	return await dlLoopGraphData(getQueryPlayerScores, "players");
 }
 async function dlQueryDistanceToCenter() {
 	return await dlLoopGraphData(getQueryDistanceToCenter, "planets");
@@ -404,12 +374,13 @@ function Plugin() {
 		o.players[hash].hash = hash;
 	}
 	
-	o.updateSilverArtifact = async function() {
-		let players = await dlQuerySilverArtifact();
+	o.updatePlayerScores = async function() {
+		let players = await dlQueryPlayerScores();
 		for (let p of players) {
 			if (p.id === emptyAddress) continue;
 			if (!o.players[p.id]) createNewPlayer(p.id);
 			o.players[p.id].scoreSilverArtifact = p.score;
+			o.players[p.id].scorePlanetsDestroyed = p.destroyedScore;
 		}
 	}
 	o.updateDistanceToCenter = async function() {
@@ -429,24 +400,10 @@ function Plugin() {
 			o.players[hash].scoreDistanceToCenter = dist;
 		}
 	}
-	o.updatePlanetsDestroyed = async function() {
-		let planets = await dlQueryPlanetsDestroyed();
-		for (let p of Object.values(o.players)) {
-			p.scorePlanetsDestroyed = 0;
-		}
-		for (let p of planets) {
-			let hash = p.owner.id;
-			if (hash === emptyAddress) continue;
-			if (!o.players[hash]) createNewPlayer(hash);
-			let score = destroyedPlanetPoints[p.planetLevel];
-			o.players[hash].scorePlanetsDestroyed += score;
-		}
-	}
 	
 	o.update = async function() {
-		await o.updateSilverArtifact();
+		await o.updatePlayerScores();
 		await o.updateDistanceToCenter();
-		await o.updatePlanetsDestroyed();
 		if (o.div_downloading) {
 			o.div.removeChild(o.div_downloading);
 			o.div_downloading = null;
