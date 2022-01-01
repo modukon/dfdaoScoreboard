@@ -53,7 +53,7 @@ const emptyAddress = "0x0000000000000000000000000000000000000000";
 
 // ------------------------------------------------------------------
 
-let roundEndTime = new Date().getTime(); // for init set it to current time
+let roundEndTime = new Date(df.contractConstants.ROUND_END*1000);
 
 function formatDuration(durationMs) {
 	if (durationMs < 0) return '';
@@ -145,7 +145,7 @@ function getQueryDistanceToCenter(idGreaterThan=0) {
     owner {
       id
     }
-	revealedRadius
+    revealedRadius
     planetLevel
   }
 }`;
