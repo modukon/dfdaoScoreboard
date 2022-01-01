@@ -292,7 +292,7 @@ function Plugin() {
 	o.twitterNames = null;
 	o.sortByColumn = null;
 	o.selectedPlayer = df.account;
-	o.centerPlayerInList = true;
+	o.centerPlayerInList = false;
 
 	o.initColumns = function() {
 		o.columns.push(createColumnRank());
@@ -470,8 +470,11 @@ function Plugin() {
 		let i = centerRank - leaderboardRange;
 		if (i+lr > o.playerList.length-1) i -= i+lr - (o.playerList.length-1);
 		if (i < 0) i = 0;
-		let max = centerRank + leaderboardRange;
-		if (max-i < lr) max += lr - (max-i); // show at least leaderboardRange*2 + 1 players
+		let max = o.playerList.length;
+		if (o.centerPlayerInList) {
+			max = centerRank + leaderboardRange;
+			if (max-i < lr) max += lr - (max-i); // show at least leaderboardRange*2 + 1 players
+		}
 		for ( ; i < o.playerList.length && i <= max; ++i) {
 			let player = o.playerList[i];
 			const tr = document.createElement('tr');
