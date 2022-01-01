@@ -11,7 +11,7 @@
 // click on a players planet to choose someone else as center
 
 // this needs to be changed
-const API_URL_GRAPH = 'https://api.thegraph.com/subgraphs/name/cha0sg0d/dry-run-of-death-of-the-universe';
+const API_URL_GRAPH = 'https://api.thegraph.com/subgraphs/name/cha0sg0d/death-of-the-universe';
 const API_URL_NAMES = 'https://api.zkga.me/twitter/all-twitters';
 
 // only count planets that are lvl 3 or higher for calculating the distance from center score
