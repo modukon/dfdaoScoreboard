@@ -128,7 +128,7 @@ function getQueryPlayerScores(idGreaterThan=0) {
 function getQueryDistanceToCenter(idGreaterThan=0) {
 	return `
 {
-  planets(first:1000, where:{isRevealed:true, id_gt:"${idGreaterThan}"}) {
+  planets(first:1000, where:{isRevealed:true, destroyed:false, id_gt:"${idGreaterThan}"}) {
 	id
     owner {
       id
@@ -292,7 +292,7 @@ function Plugin() {
 	o.twitterNames = null;
 	o.sortByColumn = null;
 	o.selectedPlayer = df.account;
-	o.centerPlayerInList = false;
+	o.centerPlayerInList = true;
 
 	o.initColumns = function() {
 		o.columns.push(createColumnRank());
